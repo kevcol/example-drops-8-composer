@@ -7,10 +7,15 @@
         {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
+        },
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
         }
     ],
     "require": {
         "php": ">=7.0.8",
+        "burdamagazinorg/thunder": "~8.2",
         "composer/installers": "^1.0.20",
         "cweagans/composer-patches": "^1.0",
         "drupal-composer/drupal-scaffold": "^2.0.1",
@@ -26,35 +31,26 @@
         "webflo/drupal-core-strict": "^8"
     },
     "require-dev": {
-        "mikey179/vfsstream": "^1.2",
-        "behat/behat": "3.*",
-        "behat/mink": "^1.7",
-        "behat/mink-extension": "^2.2",
-        "behat/mink-goutte-driver": "^1.2",
-        "jcalderonzumba/gastonjs": "^1.0.2",
-        "jcalderonzumba/mink-phantomjs-driver": "^0.3.1",
-        "drupal/drupal-extension": "^3.1",
-        "phpunit/phpunit": "^4.8",
-        "symfony/css-selector": "^2.8"
+
     },
     "conflict": {
             "drupal/drupal": "*"
     },
-    "minimum-stability": "alpha",
+    "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {
-        "classmap": [
-            "scripts/composer/ScriptHandler.php"
-        ]
+        "psr-4": {
+            "DrupalProject\\composer\\": "scripts/composer/"
+        }
     },
+
     "scripts": {
         "build-assets": [
             "@prepare-for-pantheon",
             "composer install --optimize-autoloader --no-dev"
         ],
-        "lint": "find web/modules/custom web/themes/custom -name '*.php' -exec php -l {} \\;",
-        "code-sniff": "echo 'No code sniff step defined.'",
-        "unit-test": "echo 'No unit test step defined.'",
+
+
         "drupal-scaffold": "DrupalComposer\\DrupalScaffold\\Plugin::scaffold",
         "prepare-for-pantheon": "DrupalProject\\composer\\ScriptHandler::prepareForPantheon",
         "post-install-cmd": [
@@ -62,9 +58,8 @@
             "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
         ],
         "post-update-cmd": [
-            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles",
-            "find .circleci/scripts/pantheon/ -type f | xargs chmod 755",
-            "find tests/scripts/ -type f | xargs chmod 755"
+            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
+
         ],
         "post-create-project-cmd": [
             "@drupal-scaffold",
