@@ -14,6 +14,7 @@ Before running the `terminus build:project:create` command, make sure you have a
 * [A Pantheon account](https://dashboard.pantheon.io/register)
 * [Terminus, the Pantheon command line tool](https://pantheon.io/docs/terminus/install/)
 * [The Terminus Build Tools Plugin](https://github.com/pantheon-systems/terminus-build-tools-plugin)
+* Not strictly required, but it helped me to have a second version of Thunder running locally which was installed by the [official Thunder composer.json approach](https://github.com/BurdaMagazinOrg/thunder-project/blob/2.x/README.md)
 
 
 ### Creating the Pantheon Site:
@@ -69,8 +70,6 @@ git remote set-url origin $PANTHEON_SITE_GIT_URL
 
 ### Managing Drupal with Composer
 
-**Note:** When possible, use tagged versions of Composer packages. Untagged versions will include `.git` directories, and the [Pantheon platform is not compatible with git submodules](https://pantheon.io/docs/git-faq/#does-pantheon-support-git-submodules). These instructions include a step where you'll manually remove some `.git` directories, be sure to put them back again after you push your commit up to Pantheon (see instructions below). To do this, remove the vendor directory and run composer install.
-
 #### Downloading Drupal Dependencies with Composer
 Normally the next step would go through the standard Drupal installation. But since we’re using Composer, none of the core files exist yet. Let’s use Composer to download Drupal core.
 
@@ -86,8 +85,65 @@ composer update
 git status
 ```
 
-
-
 This may take a while as all of Drupal core and its dependencies will be downloaded. Subsequent updates should take less time.
 
-------
+3. Delete git submodules
+
+When possible, use tagged versions of Composer packages. Untagged versions will include `.git` directories, and the [Pantheon platform is not compatible with git submodules](https://pantheon.io/docs/git-faq/#does-pantheon-support-git-submodules), so you may need to find and delete them.
+
+Run the following in your project directory...
+
+```
+find . -name ".git"
+```
+... and manually delete any `git` and `.gitignore` files in modules (eg: fb_instant_articles, views_load_more) or under the `/vendor` directory.  The only git repo should be the main one for your project.
+
+(**Note:** You can add those `git` submodules back after you push your commit up to Pantheon. To do this, remove the `vendor` directory and run `composer install`.)
+
+5. Set the site to git mode:
+
+```
+terminus connection:set $PANTHEON_SITE_NAME.dev git
+```
+
+6. Add and commit the code files. A Git force push is necessary because we are writing over the empty repository on Pantheon with our new history that was started on the local machine. Subsequent pushes after this initial one should not use `--force`:
+
+```
+git add .
+git commit -m 'Drupal 8 and dependencies'
+git push --force
+```
+
+### Installing Drupal
+Now that the code for Drupal core exists on our Pantheon site, we need to actually install Drupal.
+
+Rather than use Terminus, go to the Pantheon UI, and click through to your site. On the **Dev** tab, click the button that says
+
+> Visit Development Site
+
+If you're not redirected to the install page, add `/install.php` after the dev URL. With luck, you should see the Thunder installer admin.  
+
+#### Manual fiddling
+Back up in the prerequisites, I suggested you have a copy of Thunder running locally installed via the [official Thunder composer.json approach](https://github.com/BurdaMagazinOrg/thunder-project/blob/2.x/README.md). This came in handy when I hit a validation error in the Thunder installation UI.
+
+For reasons I haven't yet sussed out, I hit a validation error during in the UI because I was missing `scheduler_content_moderation_integration`.
+
+So I manually copied the `scheduler_content_moderation_integration` directory from my local Thunder installation into my Pantheon codebase, committed the change and pushed it up.
+
+Once that was included, I was able to complete the installation via the UI.
+
+But the Pantheon-hosted site had some problems because the libraries directory didn't exist.  I saw these errors on the Drupal status report:
+
+```
+Dropzonejs requires the dropzone.min.js library. Download it (https://github.com/enyo/dropzone) and place it in the libraries folder (/libraries)
+
+Make sure that the select2 lib is placed in the library folder. You can download the release of your choice from GitHub.
+
+Please download at least v1.4.6 of the shariff library and place it in one of your libraries folders. So that for example the js file is available under DRUPAL_ROOT/libraries/shariff/shariff.min.js.
+
+The Slick library should be installed at /libraries/slick/slick/slick.min.js, or any path supported by libraries.module if installed.
+```
+
+I went back to my local version of Thunder and copied the entire `/libraries` directory to my Pantheon codebase (under `/web`), committed the code and pushed it up.
+
+Voila!: Thunder 8 on Pantheon (via the scenic route)
