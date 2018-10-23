@@ -9,8 +9,6 @@ This repository is a start state for a Composer-based Drupal 8 Thunder site to b
 
 ### Prerequisites
 
-Before running the `terminus build:project:create` command, make sure you have all of the prerequisites:
-
 * [A Pantheon account](https://dashboard.pantheon.io/register)
 * [Terminus, the Pantheon command line tool](https://pantheon.io/docs/terminus/install/)
 * [The Terminus Build Tools Plugin](https://github.com/pantheon-systems/terminus-build-tools-plugin)
