@@ -115,7 +115,7 @@ git push --force
 ### Installing Drupal
 Now that the code for Drupal core exists on our Pantheon site, we need to actually install Drupal.
 
-Rather than use Terminus, go to the Pantheon UI, and click through to your site. On the **Dev** tab, click the button that says
+Rather than use Terminus, go to the Pantheon UI, and click through to your site. On the **Dev** tab, set the site to `SFTP` mode click the button that says
 
 > Visit Development Site
 
