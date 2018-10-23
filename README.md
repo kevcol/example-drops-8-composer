@@ -1,16 +1,8 @@
-# Example Drops 8 Composer
+# Pantheon Thunder 8 Composer without CI
 
-[![CircleCI](https://circleci.com/gh/pantheon-systems/example-drops-8-composer.svg?style=shield)](https://circleci.com/gh/pantheon-systems/example-drops-8-composer)
-[![Pantheon example-drops-8-composer](https://img.shields.io/badge/dashboard-drops_8-yellow.svg)](https://dashboard.pantheon.io/sites/c401fd14-f745-4e51-9af2-f30b45146a0c#dev/code) 
-[![Dev Site example-drops-8-composer](https://img.shields.io/badge/site-drops_8-blue.svg)](http://dev-example-drops-8-composer.pantheonsite.io/)
+This repository is a start state for a Composer-based Drupal 8 Thunder site to be installed on [Pantheon](https://pantheon.io/) without CI. It is based on https://github.com/pantheon-systems/example-drops-8-composer
 
-This repository is a start state for a Composer-based Drupal workflow with Pantheon. It is meant to be copied by the the [Terminus Build Tools Plugin](https://github.com/pantheon-systems/terminus-build-tools-plugin) which will set up for you a brand new
-
-* GitHub repo
-* Free Pantheon sandbox site
-* A CircleCI configuration to run tests and push from the source repo (GitHub) to Pantheon.
-
-For more background information on this style of workflow, see the [Pantheon documentation](https://pantheon.io/docs/guides/github-pull-requests/).
+**Caveat:** There are a fair amount of clunky, manual steps, and I'm new at this, so suggestions and pull requests are welcome!
 
 
 ## Installation
@@ -22,57 +14,80 @@ Before running the `terminus build:project:create` command, make sure you have a
 * [A Pantheon account](https://dashboard.pantheon.io/register)
 * [Terminus, the Pantheon command line tool](https://pantheon.io/docs/terminus/install/)
 * [The Terminus Build Tools Plugin](https://github.com/pantheon-systems/terminus-build-tools-plugin)
-* An account with GitHub and an authentication token capable of creating new repos.
-* An account with CircleCI and an authentication token.
 
-You may find it easier to export the GitHub and CircleCI tokens as variables on your command line where the Build Tools Plugin can detect them automatically:
 
-```
-export GITHUB_TOKEN=[REDACTED]
-export CIRCLE_TOKEN=[REDACTED]
-```
+### Creating the Pantheon Site:
+Modified from https://pantheon.io/docs/guides/drupal-8-composer-no-ci/
 
-### One command setup:
+To begin, we’ll want to start a brand new Drupal 8 site on Pantheon from our empty upstream. This upstream is different from the Drupal 8 upstream in that it does not come with any Drupal files. As such, you must use Composer to download Drupal.
 
-Once you have all of the prerequisites in place, you can create your copy of this repo with one command:
+Before we begin choose a machine-friendly site name. It should be all lower case with dashes instead of spaces. I'll use d8-thunder-no-ci but choose your own. Once you have a site name export it to a variable for re-use.
 
 ```
-terminus build:project:create pantheon-systems/example-drops-8-composer my-new-site --team="Agency Org Name"
+export PANTHEON_SITE_NAME="d8-thunder-no-ci"
 ```
 
-The parameters shown here are:
+You should also be authenticated with Terminus. See the [Authenticate into Terminus](https://pantheon.io/docs/machine-tokens/#authenticate-into-terminus) section of the [machine tokens](https://pantheon.io/docs/machine-tokens/) documentation for details.
 
-* The name of the source repo, `pantheon-systems/example-drops-8-composer`. If you are interest in other source repos like WordPress, see the [Terminus Build Tools Plugin](https://github.com/pantheon-systems/terminus-build-tools-plugin).
-* The machine name to be used by both the soon-to-be-created Pantheon site and GitHub repo. Change `my-new-site` to something meaningful for you.
-* The `--team` flag is optional and refers to a Pantheon organization. Pantheon organizations are often web development agencies or Universities. Setting this parameter causes the newly created site to go within the given organization. Run the Terminus command `terminus org:list` to see the organizations you are a member of. There might not be any.
+Create a new Pantheon site with an empty upstream.
 
+```
+terminus site:create $PANTHEON_SITE_NAME 'My D8 Composer Site' empty
+```
 
-## Important files and directories
-
-### `/web`
-
-Pantheon will serve the site from the `/web` subdirectory due to the configuration in `pantheon.yml`, facilitating a Composer based workflow. Having your website in this subdirectory also allows for tests, scripts, and other files related to your project to be stored in your repo without polluting your web document root.
-
-#### `/config`
-
-One of the directories moved to the git root is `/config`. This directory holds Drupal's `.yml` configuration files. In more traditional repo structure these files would live at `/sites/default/config/`. Thanks to [this line in `settings.php`](https://github.com/pantheon-systems/example-drops-8-composer/blob/54c84275cafa66c86992e5232b5e1019954e98f3/web/sites/default/settings.php#L19), the config is moved entirely outside of the web root.
-
-### `composer.json`
-
-If you are just browsing this repository on GitHub, you may notice that the files of Drupal core itself are not included in this repo.  That is because Drupal core and contrib modules are installed via Composer and ignored in the `.gitignore` file. Specific contrib modules are added to the project via `composer.json` and `composer.lock` keeps track of the exact version of each modules (or other dependency). Modules, and themes are placed in the correct directories thanks to the `"installer-paths"` section of `composer.json`. `composer.json` also includes instructions for `drupal-scaffold` which takes care of placing some individual files in the correct places like `settings.pantheon.php`.
-
-## Behat tests
-
-So that CircleCI will have some test to run, this repository includes a configuration of Behat tests. You can add your own `.feature` files within `/tests/features/`.
-
-## Updating your site
-
-When using this repository to manage your Drupal site, you will no longer use the Pantheon dashboard to update your Drupal version. Instead, you will manage your updates using Composer. Ensure your site is in Git mode, clone it locally, and then run composer commands from there.  Commit and push your files back up to Pantheon as usual.
+**Note** you can also add the `--org` argument to `terminus site:create` if you would like the site to be part of an organization. See `terminus site:create -h` for details and help.
 
 
+###Cloning pantheon-thunder-8-composer Locally
+
+Instead of setting up `composer.json` manually, it is easier to start with the `pantheon-thunder-8-composer` repository.
+
+1. Clone the pantheon-thunder-8-composer repository locally:
+
+```
+git clone git@github.com:kevcol/pantheon-thunder-8-composer.git $PANTHEON_SITE_NAME
+```
+
+2. `cd` into the cloned directory:
+
+```
+cd $PANTHEON_SITE_NAME
+```
+
+###Updating the Git Remote URL
+Store the Git URL for the Pantheon site created earlier in a variable:
+
+```
+export PANTHEON_SITE_GIT_URL="$(terminus connection:info $PANTHEON_SITE_NAME.dev --field=git_url)"
+```
+
+Update the Git remote to use the Pantheon site Git URL returned rather than the `pantheon-thunder-8-composer` GitHub URL:
+
+```
+git remote set-url origin $PANTHEON_SITE_GIT_URL
+```
+
+###Managing Drupal with Composer
+
+**Note:** When possible, use tagged versions of Composer packages. Untagged versions will include `.git` directories, and the [Pantheon platform is not compatible with git submodules](https://pantheon.io/docs/git-faq/#does-pantheon-support-git-submodules). These instructions include a step where you'll manually remove some `.git` directories, be sure to put them back again after you push your commit up to Pantheon (see instructions below). To do this, remove the vendor directory and run composer install.
+
+####Downloading Drupal Dependencies with Composer
+Normally the next step would go through the standard Drupal installation. But since we’re using Composer, none of the core files exist yet. Let’s use Composer to download Drupal core.
+
+1. Update Composer to download the defined dependencies:
+
+```
+composer update
+```
+
+2. Let's take a look at the changes:
+
+```
+git status
+```
 
 
 
+This may take a while as all of Drupal core and its dependencies will be downloaded. Subsequent updates should take less time.
 
-
-
+------
