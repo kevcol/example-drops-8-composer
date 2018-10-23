@@ -38,7 +38,7 @@ terminus site:create $PANTHEON_SITE_NAME 'My D8 Composer Site' empty
 **Note** you can also add the `--org` argument to `terminus site:create` if you would like the site to be part of an organization. See `terminus site:create -h` for details and help.
 
 
-###Cloning pantheon-thunder-8-composer Locally
+### Cloning pantheon-thunder-8-composer Locally
 
 Instead of setting up `composer.json` manually, it is easier to start with the `pantheon-thunder-8-composer` repository.
 
@@ -54,7 +54,7 @@ git clone git@github.com:kevcol/pantheon-thunder-8-composer.git $PANTHEON_SITE_N
 cd $PANTHEON_SITE_NAME
 ```
 
-###Updating the Git Remote URL
+### Updating the Git Remote URL
 Store the Git URL for the Pantheon site created earlier in a variable:
 
 ```
@@ -67,11 +67,11 @@ Update the Git remote to use the Pantheon site Git URL returned rather than the 
 git remote set-url origin $PANTHEON_SITE_GIT_URL
 ```
 
-###Managing Drupal with Composer
+### Managing Drupal with Composer
 
 **Note:** When possible, use tagged versions of Composer packages. Untagged versions will include `.git` directories, and the [Pantheon platform is not compatible with git submodules](https://pantheon.io/docs/git-faq/#does-pantheon-support-git-submodules). These instructions include a step where you'll manually remove some `.git` directories, be sure to put them back again after you push your commit up to Pantheon (see instructions below). To do this, remove the vendor directory and run composer install.
 
-####Downloading Drupal Dependencies with Composer
+#### Downloading Drupal Dependencies with Composer
 Normally the next step would go through the standard Drupal installation. But since we’re using Composer, none of the core files exist yet. Let’s use Composer to download Drupal core.
 
 1. Update Composer to download the defined dependencies:
